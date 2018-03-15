@@ -1,0 +1,114 @@
+target:to see if a picture is in a set of faces
+
+1.create a faceset
+http_url='https://api-cn.faceplusplus.com/facepp/v3/faceset/create'
+key="GfkqJQ5dIt1nQ9OeHUkzu3Y2_4apboCb"
+secret="hvT7I3R_2RbHNkdrBtDQbQD4zlrBbvBk"
+
+
+data = {'api_key':key,
+		'api_secret':secret
+		}
+
+r = requests.post(http_url,data=data)
+print(r.text)
+
+{"faceset_token": "e2f568eb6f95d02a7e567e347161b118", "time_used": 171, "face_count": 0, "face_added": 0, "request_id": "1519892618,56a3c895-8d49-471c-b74c-e29fbd7e2dd3", "outer_id": "", "failure_detail": []}
+
+2.upload 3 pics to get 3 tokens
+http_url='https://api-cn.faceplusplus.com/facepp/v3/detect'
+key="GfkqJQ5dIt1nQ9OeHUkzu3Y2_4apboCb"
+secret="hvT7I3R_2RbHNkdrBtDQbQD4zlrBbvBk"
+filepath2=r"G:/face_reco11.jpg"
+face_token = 0
+boundary = '----------%s' % hex(int(time.time() * 1000))
+data = []
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_key')
+data.append(key)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_secret')
+data.append(secret)
+data.append('--%s' % boundary)
+fr1=open(filepath2,'rb')
+data.append('Content-Disposition: form-data; name="%s"; filename=" "' % 'image_file')
+data.append('Content-Type: %s\r\n' % 'application/octet-stream')
+data.append(fr1.read())
+fr1.close()
+data.append('--%s--\r\n' % boundary)
+
+http_body='\r\n'.join(data)
+req=urllib2.Request(http_url)
+req.add_header('Content-Type', 'multipart/form-data; boundary=%s' % boundary)
+req.add_data(http_body)
+
+try:
+	context = ssl._create_unverified_context()
+	resp = urllib2.urlopen(req, timeout=5, context=context)
+	qrcont = resp.read()
+	#print(qrcont)
+	face_token = str(json.loads(qrcont)['faces'][0]['face_token'])
+	#print(face_token)
+except urllib2.HTTPError as e:
+	print(e.read())
+
+face_reco    4cc1dd20961b2a419127c777bdb4c52b
+face_reco8   dcbc08805f55facea59858da7c7f9057
+face_reco11  a1f7bd671df4fbf6e6ed7e915c0c2c62
+
+3.put 3 tokens into the faceset we created
+http_urlAdd='https://api-cn.faceplusplus.com/facepp/v3/faceset/addface'
+
+data = {'api_key':key,
+		'api_secret':secret,
+		'faceset_token':"e2f568eb6f95d02a7e567e347161b118",
+		'face_tokens': "4cc1dd20961b2a419127c777bdb4c52b,dcbc08805f55facea59858da7c7f9057,a1f7bd671df4fbf6e6ed7e915c0c2c62"
+		}
+
+r = requests.post(http_urlAdd,data=data)  
+print(r.text)
+
+{"faceset_token": "e2f568eb6f95d02a7e567e347161b118", "time_used": 678, "face_count": 3, "face_added": 3, "request_id": "1519894699,446851c2-32e9-4e23-9e7d-eb3af16261bd", "outer_id": "", "failure_detail": []}
+
+
+4.use searchAPI
+key="GfkqJQ5dIt1nQ9OeHUkzu3Y2_4apboCb"
+secret="hvT7I3R_2RbHNkdrBtDQbQD4zlrBbvBk"
+http_url='https://api-cn.faceplusplus.com/facepp/v3/search'
+filepath2=r"G:/face_reco11.jpg"
+
+
+boundary = '----------%s' % hex(int(time.time() * 1000))
+data = []
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_key')
+data.append(key)
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'api_secret')
+data.append(secret)
+data.append('--%s' % boundary)
+fr1=open(filepath2,'rb')
+data.append('Content-Disposition: form-data; name="%s"; filename=" "' % 'image_file')
+data.append('Content-Type: %s\r\n' % 'application/octet-stream')
+data.append(fr1.read())
+fr1.close()
+data.append('--%s' % boundary)
+data.append('Content-Disposition: form-data; name="%s"\r\n' % 'faceset_token')
+data.append('e2f568eb6f95d02a7e567e347161b118')
+data.append('--%s--\r\n' % boundary)
+
+
+http_body='\r\n'.join(data)
+req=urllib2.Request(http_url)
+req.add_header('Content-Type', 'multipart/form-data; boundary=%s' % boundary)
+req.add_data(http_body)
+
+try:
+	context = ssl._create_unverified_context()
+	resp = urllib2.urlopen(req, timeout=5, context=context)
+	qrcont = resp.read()
+	print(qrcont)
+except urllib2.HTTPError as e:
+	print(e.read())
+
+{"image_id": "21m6P7XtT2rBfwvlEHTGKQ==", "faces": [{"face_rectangle": {"width": 163, "top": 41, "left": 120, "height": 163}, "face_token": "15fabb79c490b38ecaf44ce29034a153"}], "time_used": 437, "thresholds": {"1e-3": 62.327, "1e-5": 73.975, "1e-4": 69.101}, "request_id": "1521099178,679a4209-4922-4103-bdf7-8c82d1b6e367", "results": [{"confidence": 97.389, "user_id": "", "face_token": "a1f7bd671df4fbf6e6ed7e915c0c2c62"}]}
